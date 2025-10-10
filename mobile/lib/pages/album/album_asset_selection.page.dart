@@ -49,21 +49,43 @@ class AlbumAssetSelectionPage extends HookConsumerWidget {
         ),
         title: selected.value.isEmpty
             ? const Text('add_photos', style: TextStyle(fontSize: 18)).tr()
-            : const Text(
+            : Text(
                 'share_assets_selected',
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
               ).tr(namedArgs: {'count': selected.value.length.toString()}),
         centerTitle: false,
         actions: [
+          TextButton(
+            onPressed: () {
+              final allAssets = assetSelectionRenderList.allAssets ?? assetSelectionRenderList.query!.findAllSync();
+              if (selected.value.length == allAssets.length) {
+                selected.value = {};
+              } else {
+                selected.value = allAssets.toSet();
+              }
+            },
+            child: Text(
+              selected.value.length == (assetSelectionRenderList.allAssets?.length ?? assetSelectionRenderList.totalAssets)
+                  ? 'deselect_all'
+                  : 'asset_selection_select_all',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: context.primaryColor,
+              ),
+            ).tr(),
+          ),
           if (selected.value.isNotEmpty || canDeselect)
             TextButton(
               onPressed: () {
-                var payload = AssetSelectionPageResult(selectedAssets: selected.value);
+                final payload = AssetSelectionPageResult(selectedAssets: selected.value);
                 AutoRouter.of(context).popForced<AssetSelectionPageResult>(payload);
               },
               child: Text(
                 canDeselect ? "done" : "add",
-                style: TextStyle(fontWeight: FontWeight.bold, color: context.primaryColor),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: context.primaryColor,
+                ),
               ).tr(),
             ),
         ],

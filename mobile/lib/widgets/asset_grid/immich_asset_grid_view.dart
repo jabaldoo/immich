@@ -36,6 +36,8 @@ import 'group_divider_title.dart';
 
 typedef ImmichAssetGridSelectionListener = void Function(bool, Set<Asset>);
 
+import 'package:immich_mobile/providers/select_all.provider.dart';
+
 class ImmichAssetGridView extends ConsumerStatefulWidget {
   final RenderList renderList;
   final int assetsPerRow;
@@ -94,12 +96,14 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
   int _hapticFeedbackTS = 0;
   DateTime? _prevItemTime;
   bool _scrolling = false;
-  final Set<Asset> _selectedAssets = LinkedHashSet(equals: (a, b) => a.id == b.id, hashCode: (a) => a.id);
+  final Set<Asset> _selectedAssets =
+      LinkedHashSet(equals: (a, b) => a.id == b.id, hashCode: (a) => a.id);
 
   bool _dragging = false;
   int? _dragAnchorAssetIndex;
   int? _dragAnchorSectionIndex;
-  final Set<Asset> _draggedAssets = HashSet(equals: (a, b) => a.id == b.id, hashCode: (a) => a.id);
+  final Set<Asset> _draggedAssets =
+      HashSet(equals: (a, b) => a.id == b.id, hashCode: (a) => a.id);
 
   ScrollPhysics? _scrollPhysics;
 
@@ -109,6 +113,14 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
 
   void _callSelectionListener(bool selectionActive) {
     widget.listener?.call(selectionActive, _getSelectedAssets());
+  }
+
+  void _selectAll() {
+    final allAssets = widget.renderList.allAssets ?? widget.renderList.query!.findAllSync();
+    setState(() {
+      _selectedAssets.addAll(allAssets);
+      _callSelectionListener(true);
+    });
   }
 
   void _selectAssets(List<Asset> assets) {
@@ -123,7 +135,9 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
 
   void _deselectAssets(List<Asset> assets) {
     final assetsToDeselect = assets.where(
-      (a) => widget.canDeselect || !(widget.preselectedAssets?.contains(a) ?? false),
+      (a) =>
+          widget.canDeselect ||
+          !(widget.preselectedAssets?.contains(a) ?? false),
     );
 
     setState(() {
@@ -142,7 +156,9 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
       _dragAnchorSectionIndex = null;
       _draggedAssets.clear();
       _dragging = false;
-      if (!widget.canDeselect && widget.preselectedAssets != null && widget.preselectedAssets!.isNotEmpty) {
+      if (!widget.canDeselect &&
+          widget.preselectedAssets != null &&
+          widget.preselectedAssets!.isNotEmpty) {
         _selectedAssets.addAll(widget.preselectedAssets!);
       }
       _callSelectionListener(false);
@@ -323,6 +339,18 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
     currentAssetLink = ref.read(currentAssetProvider.notifier).ref.keepAlive();
     scrollToTopNotifierProvider.addListener(_scrollToTop);
     scrollToDateNotifierProvider.addListener(_scrollToDate);
+
+    ref.listen<bool>(selectAllProvider, (_, next) {
+      if (next) {
+        final allAssets = widget.renderList.allAssets ?? widget.renderList.query!.findAllSync();
+        if (_selectedAssets.length == allAssets.length) {
+          _deselectAll();
+        } else {
+          _selectAll();
+        }
+        ref.read(selectAllProvider.notifier).state = false;
+      }
+    });
 
     if (widget.visibleItemsListener != null) {
       _itemPositionsListener.itemPositions.addListener(_positionListener);

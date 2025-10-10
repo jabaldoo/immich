@@ -16,6 +16,9 @@ import 'package:immich_mobile/widgets/asset_viewer/cast_dialog.dart';
 import 'package:immich_mobile/widgets/common/app_bar_dialog/app_bar_dialog.dart';
 import 'package:immich_mobile/widgets/common/user_circle_avatar.dart';
 
+import 'package:immich_mobile/providers/multiselect.provider.dart';
+import 'package:immich_mobile/providers/select_all.provider.dart';
+
 class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -27,27 +30,35 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final BackUpState backupState = ref.watch(backupProvider);
-    final bool isEnableAutoBackup = backupState.backgroundBackup || backupState.autoBackup;
+    final bool isEnableAutoBackup =
+        backupState.backgroundBackup || backupState.autoBackup;
     final ServerInfo serverInfoState = ref.watch(serverInfoProvider);
     final user = ref.watch(currentUserProvider);
     final isDarkTheme = context.isDarkTheme;
     const widgetSize = 30.0;
     final isCasting = ref.watch(castProvider.select((c) => c.isCasting));
+    final isMultiSelectEnabled = ref.watch(multiselectProvider);
 
     buildProfileIndicator() {
       return InkWell(
-        onTap: () =>
-            showDialog(context: context, useRootNavigator: false, builder: (ctx) => const ImmichAppBarDialog()),
+        onTap: () => showDialog(
+            context: context,
+            useRootNavigator: false,
+            builder: (ctx) => const ImmichAppBarDialog()),
         borderRadius: const BorderRadius.all(Radius.circular(12)),
         child: Badge(
           label: Container(
-            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(widgetSize / 2)),
-            child: const Icon(Icons.info, color: Color.fromARGB(255, 243, 188, 106), size: widgetSize / 2),
+            decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(widgetSize / 2)),
+            child: const Icon(Icons.info,
+                color: Color.fromARGB(255, 243, 188, 106),
+                size: widgetSize / 2),
           ),
           backgroundColor: Colors.transparent,
           alignment: Alignment.bottomRight,
-          isLabelVisible:
-              serverInfoState.isVersionMismatch || ((user?.isAdmin ?? false) && serverInfoState.isNewReleaseAvailable),
+          isLabelVisible: serverInfoState.isVersionMismatch ||
+              ((user?.isAdmin ?? false) && serverInfoState.isNewReleaseAvailable),
           offset: const Offset(-2, -12),
           child: user == null
               ? const Icon(Icons.face_outlined, size: widgetSize)
@@ -73,8 +84,10 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
               semanticsLabel: 'backup_controller_page_backup'.tr(),
             ),
           );
-        } else if (backupState.backupProgress != BackUpProgressEnum.inBackground &&
-            backupState.backupProgress != BackUpProgressEnum.manualInProgress) {
+        } else if (backupState.backupProgress !=
+                BackUpProgressEnum.inBackground &&
+            backupState.backupProgress !=
+                BackUpProgressEnum.manualInProgress) {
           return Icon(
             Icons.check_outlined,
             size: 9,
@@ -107,7 +120,8 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
             height: widgetSize / 2,
             decoration: BoxDecoration(
               color: badgeBackground,
-              border: Border.all(color: context.colorScheme.outline.withValues(alpha: .3)),
+              border:
+                  Border.all(color: context.colorScheme.outline.withValues(alpha: .3)),
               borderRadius: BorderRadius.circular(widgetSize / 2),
             ),
             child: indicatorIcon,
@@ -116,14 +130,16 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
           alignment: Alignment.bottomRight,
           isLabelVisible: indicatorIcon != null,
           offset: const Offset(-2, -12),
-          child: Icon(Icons.backup_rounded, size: widgetSize, color: context.primaryColor),
+          child: Icon(Icons.backup_rounded,
+              size: widgetSize, color: context.primaryColor),
         ),
       );
     }
 
     return AppBar(
       backgroundColor: context.themeData.appBarTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(5))),
+      shape:
+          const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(5))),
       automaticallyImplyLeading: false,
       centerTitle: false,
       title: Builder(
@@ -134,7 +150,9 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 3.0),
                 child: SvgPicture.asset(
-                  context.isDarkTheme ? 'assets/immich-logo-inline-dark.svg' : 'assets/immich-logo-inline-light.svg',
+                  context.isDarkTheme
+                      ? 'assets/immich-logo-inline-dark.svg'
+                      : 'assets/immich-logo-inline-light.svg',
                   height: 40,
                 ),
               ),
@@ -145,7 +163,8 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
                     "The old timeline is deprecated and will be removed in a future release. Kindly switch to the new timeline under Advanced Settings.",
                 child: Padding(
                   padding: EdgeInsets.only(top: 3.0),
-                  child: Icon(Icons.error_rounded, fill: 1, color: Colors.amber, size: 20),
+                  child: Icon(Icons.error_rounded,
+                      fill: 1, color: Colors.amber, size: 20),
                 ),
               ),
             ],
@@ -153,8 +172,22 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
         },
       ),
       actions: [
+        if (isMultiSelectEnabled)
+          TextButton(
+            onPressed: () {
+              ref.read(selectAllProvider.notifier).state = true;
+            },
+            child: Text(
+              'asset_selection_select_all',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: context.primaryColor,
+              ),
+            ).tr(),
+          ),
         if (actions != null)
-          ...actions!.map((action) => Padding(padding: const EdgeInsets.only(right: 16), child: action)),
+          ...actions!.map(
+              (action) => Padding(padding: const EdgeInsets.only(right: 16), child: action)),
         if (kDebugMode || kProfileMode)
           IconButton(
             icon: const Icon(Icons.science_rounded),
@@ -165,14 +198,24 @@ class ImmichAppBar extends ConsumerWidget implements PreferredSizeWidget {
             padding: const EdgeInsets.only(right: 12),
             child: IconButton(
               onPressed: () {
-                showDialog(context: context, builder: (context) => const CastDialog());
+                showDialog(
+                    context: context,
+                    builder: (context) => const CastDialog());
               },
-              icon: Icon(isCasting ? Icons.cast_connected_rounded : Icons.cast_rounded),
+              icon: Icon(isCasting
+                  ? Icons.cast_connected_rounded
+                  : Icons.cast_rounded),
             ),
           ),
-        if (showUploadButton) Padding(padding: const EdgeInsets.only(right: 20), child: buildBackupIndicator()),
-        Padding(padding: const EdgeInsets.only(right: 20), child: buildProfileIndicator()),
+        if (showUploadButton)
+          Padding(
+              padding: const EdgeInsets.only(right: 20),
+              child: buildBackupIndicator()),
+        Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: buildProfileIndicator()),
       ],
     );
   }
 }
+
