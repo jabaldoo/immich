@@ -20,6 +20,7 @@ import 'package:immich_mobile/providers/asset_viewer/scroll_notifier.provider.da
 import 'package:immich_mobile/providers/asset_viewer/scroll_to_date_notifier.provider.dart';
 import 'package:immich_mobile/providers/asset_viewer/show_controls.provider.dart';
 import 'package:immich_mobile/providers/haptic_feedback.provider.dart';
+import 'package:immich_mobile/providers/select_all.provider.dart';
 import 'package:immich_mobile/providers/tab.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
 import 'package:immich_mobile/widgets/asset_grid/asset_drag_region.dart';
@@ -35,8 +36,6 @@ import 'draggable_scrollbar_custom.dart';
 import 'group_divider_title.dart';
 
 typedef ImmichAssetGridSelectionListener = void Function(bool, Set<Asset>);
-
-import 'package:immich_mobile/providers/select_all.provider.dart';
 
 class ImmichAssetGridView extends ConsumerStatefulWidget {
   final RenderList renderList;

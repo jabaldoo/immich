@@ -57,7 +57,7 @@ class AlbumAssetSelectionPage extends HookConsumerWidget {
         actions: [
           TextButton(
             onPressed: () {
-              final allAssets = assetSelectionRenderList.allAssets ?? assetSelectionRenderList.query!.findAllSync();
+              final allAssets = assetSelectionRenderList.value!.allAssets ?? (assetSelectionRenderList.value!.query! as dynamic).findAllSync();
               if (selected.value.length == allAssets.length) {
                 selected.value = {};
               } else {
@@ -65,7 +65,7 @@ class AlbumAssetSelectionPage extends HookConsumerWidget {
               }
             },
             child: Text(
-              selected.value.length == (assetSelectionRenderList.allAssets?.length ?? assetSelectionRenderList.totalAssets)
+              selected.value.length == (assetSelectionRenderList.value!.allAssets?.length ?? assetSelectionRenderList.value!.totalAssets)
                   ? 'deselect_all'
                   : 'asset_selection_select_all',
               style: TextStyle(
